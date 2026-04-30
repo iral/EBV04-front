@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
+import { api } from '../../../services/api';
 import { User, Mail, Code2, Calendar, Edit2, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
@@ -14,10 +15,18 @@ const TECHNOLOGIES = [
 export default function ProfilePage() {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(user?.name || '');
-  const [bio, setBio] = useState(user?.bio || '');
-  const [selectedTechs, setSelectedTechs] = useState<string[]>(user?.stack || []);
+  const [name, setName] = useState('');
+  const [bio, setBio] = useState('');
+  const [selectedTechs, setSelectedTechs] = useState<string[]>([]);
   const [customTech, setCustomTech] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setBio(user.bio || '');
+      setSelectedTechs(user.stack || []);
+    }
+  }, [user]);
 
   const toggleTech = (tech: string) => {
     setSelectedTechs(prev =>
@@ -32,15 +41,27 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       toast.error('El nombre es obligatorio');
       return;
     }
 
-    // Here would be the API call to update profile
-    toast.success('Perfil actualizado exitosamente');
-    setIsEditing(false);
+    try {
+      const updatedUser = await api.updateProfile({
+        name: name.trim(),
+        bio: bio.trim(),
+        stack: selectedTechs
+      });
+      
+      const { refreshUser } = useAuth();
+      refreshUser();
+      
+      toast.success('Perfil actualizado exitosamente');
+      setIsEditing(false);
+    } catch (error) {
+      toast.error('Error al actualizar el perfil');
+    }
   };
 
   const handleCancel = () => {
