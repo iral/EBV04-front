@@ -74,11 +74,6 @@ class ApiService {
     localStorage.removeItem(CURRENT_USER_KEY);
   }
 
-  getCurrentUser(): User | null {
-    const userJson = localStorage.getItem(CURRENT_USER_KEY);
-    return userJson ? JSON.parse(userJson) : null;
-  }
-
   // ============================================================================
   // Authentication
   // ============================================================================
@@ -112,7 +107,7 @@ class ApiService {
   }
 
   async logout(): Promise<void> {
-    await this.request('/auth/logout', { method: 'POST' }).catch(() => {});
+    await this.request('/auth/logout', { method: 'POST' }).catch(() => { });
     this.clearAuth();
   }
 
