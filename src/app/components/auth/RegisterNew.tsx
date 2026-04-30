@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuth } from '../../../contexts/AuthContext';
+import { api } from '../../../services/api';
 import { User, Mail, Lock, Terminal, ArrowRight, X, Code2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
@@ -11,15 +12,26 @@ const TECHNOLOGIES = [
   'Redis', 'Docker', 'Kubernetes', 'AWS', 'GraphQL', 'Next.js', 'Tailwind CSS'
 ];
 
+interface Role {
+  id: number;
+  name: string;
+}
+
 export default function RegisterNew() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [selectedTechs, setSelectedTechs] = useState<string[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [selectedRole, setSelectedRole] = useState('DEVELOPER');
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    api.getRoles().then(setRoles).catch(() => {});
+  }, []);
 
   const toggleTech = (tech: string) => {
     setSelectedTechs(prev =>
@@ -43,7 +55,7 @@ export default function RegisterNew() {
     setIsLoading(true);
 
     try {
-      await register({ name, email, password, stack: selectedTechs });
+      await register({ name, email, password, stack: selectedTechs, role: selectedRole });
       toast.success('¡Cuenta creada exitosamente!');
       navigate('/dashboard');
     } catch (error) {
@@ -208,6 +220,29 @@ export default function RegisterNew() {
                     </motion.button>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <User className="w-4 h-4 text-primary" />
+                  <label className="text-sm text-foreground/80">
+                    Rol <span className="text-primary">*</span>
+                  </label>
+                </div>
+                <select
+                  value={selectedRole}
+                  onChange={(e) => setSelectedRole(e.target.value)}
+                  className="w-full px-4 py-3 bg-input-background border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  required
+                >
+                  {roles.filter(r => r.name !== 'ADMIN').map((role) => (
+                    <option key={role.id} value={role.name}>
+                      {role.name === 'DEVELOPER' ? 'Desarrollador' : 
+                       role.name === 'RECRUITER' ? 'Reclutador' : 
+                       role.name === 'ADMIN' ? 'Administrador' : role.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <button

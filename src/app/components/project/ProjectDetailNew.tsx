@@ -137,9 +137,10 @@ export default function ProjectDetailNew() {
     );
   }
 
-  const isOwner = user?.id === project.creatorId;
-  const isCollaborator = project.collaborators.some(c => c.id === user?.id);
-  const hasApplied = applications.some(a => a.applicantId === user?.id);
+  const isOwner = user?.id === String(project.creatorId);
+  const isCollaborator = project.collaborators.some(c => c.id === user?.id) || isOwner;
+  const canViewApplications = isOwner || isCollaborator;
+  const hasApplied = applications.some(a => String(a.applicantId) === user?.id);
   const canApply = !isOwner && !isCollaborator && !hasApplied && project.status === 'seeking_collaborators';
   const config = STATUS_CONFIG[project.status];
 
@@ -196,12 +197,10 @@ export default function ProjectDetailNew() {
                       <Calendar size={16} />
                       <span>{new Date(project.createdAt).toLocaleDateString()}</span>
                     </div>
-                    {project.collaborators.length > 0 && (
-                      <div className="flex items-center gap-2">
-                        <Code2 size={16} />
-                        <span>{project.collaborators.length} colaboradores</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <Code2 size={16} />
+                      <span>{project.collaborators.length + 1} miembros</span>
+                    </div>
                   </div>
                 </div>
 
@@ -286,7 +285,7 @@ export default function ProjectDetailNew() {
                 >
                   {tab === 'overview' && 'Vista General'}
                   {tab === 'applications' && `Postulaciones (${applications.filter(a => a.status === 'pending').length})`}
-                  {tab === 'team' && `Equipo (${project.collaborators.length})`}
+                  {tab === 'team' && `Equipo (${project.collaborators.length + 1})`}
                   {tab === 'discussions' && `Debates (${threads.length})`}
                 </button>
               ))}
@@ -294,7 +293,7 @@ export default function ProjectDetailNew() {
 
             {/* Tab Content */}
             <div className="bg-card border border-border rounded-lg p-6">
-              {activeTab === 'applications' && isOwner && (
+              {activeTab === 'applications' && canViewApplications && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold mb-4">Postulaciones Pendientes</h3>
                   {applications.filter(a => a.status === 'pending').length === 0 ? (
@@ -311,8 +310,8 @@ export default function ProjectDetailNew() {
                                   <Users size={20} className="text-primary" />
                                 </div>
                                 <div>
-                                  <p className="font-medium">{application.applicant.name}</p>
-                                  <p className="text-sm text-muted-foreground">{application.applicant.email}</p>
+                                  <p className="font-medium">{application.applicantName}</p>
+                                  <p className="text-sm text-muted-foreground">{application.applicantEmail}</p>
                                 </div>
                               </div>
                               {application.message && (
@@ -321,13 +320,13 @@ export default function ProjectDetailNew() {
                                 </p>
                               )}
                               <div className="flex flex-wrap gap-1.5 mt-3">
-                                {application.applicant.stack.map((tech) => (
+                                {application.technologies?.map((tech) => (
                                   <span
-                                    key={tech}
+                                    key={tech.id}
                                     className="px-2 py-0.5 text-xs rounded bg-muted/50 text-foreground/70"
                                     style={{ fontFamily: 'var(--font-mono)' }}
                                   >
-                                    {tech}
+                                    {tech.name}
                                   </span>
                                 ))}
                               </div>

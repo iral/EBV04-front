@@ -68,12 +68,10 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             <User size={14} />
             <span>{project.creator.name}</span>
           </div>
-          {project.collaborators.length > 0 && (
-            <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5">
               <Users size={14} />
-              <span>{project.collaborators.length}</span>
+              <span>{project.collaborators.length + 1}</span>
             </div>
-          )}
         </div>
         {project.applicationCount > 0 && project.status === 'seeking_collaborators' && (
           <div className="px-2 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium">

@@ -20,9 +20,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check if user is already logged in
-    const currentUser = api.getCurrentUser();
-    setUser(currentUser);
-    setIsLoading(false);
+    const loadUser = async () => {
+      try {
+        const currentUser = await api.getCurrentUser();
+        setUser(currentUser);
+      } catch {
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadUser();
   }, []);
 
   const login = async (data: LoginRequest) => {
@@ -40,9 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  const refreshUser = () => {
-    const currentUser = api.getCurrentUser();
-    setUser(currentUser);
+  const refreshUser = async () => {
+    try {
+      const currentUser = await api.getCurrentUser();
+      setUser(currentUser);
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+    }
   };
 
   return (

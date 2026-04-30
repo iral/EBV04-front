@@ -150,30 +150,6 @@ export default function LoginNew() {
             </form>
           </motion.div>
         </div>
-
-        {/* Quick login helper */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="mt-4 p-4 bg-accent/50 border border-border/50 rounded-md"
-        >
-          <p className="text-xs text-muted-foreground mb-2">
-            <span className="text-primary" style={{ fontFamily: 'var(--font-mono)' }}>Demo:</span> Usa cualquier email de mockUsers
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {['ana@example.com', 'carlos@example.com', 'maria@example.com'].map((demoEmail) => (
-              <button
-                key={demoEmail}
-                onClick={() => setEmail(demoEmail)}
-                className="text-xs px-2 py-1 bg-muted/50 hover:bg-muted border border-border/50 rounded text-foreground/70 hover:text-foreground transition-colors"
-                style={{ fontFamily: 'var(--font-mono)' }}
-              >
-                {demoEmail}
-              </button>
-            ))}
-          </div>
-        </motion.div>
       </motion.div>
     </div>
   );
