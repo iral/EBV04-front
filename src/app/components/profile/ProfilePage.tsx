@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { api } from '../../../services/api';
-import { User, Mail, Code2, Calendar, Edit2, Save, X } from 'lucide-react';
+import type { UserRole } from '../../../types/api';
+import { User, Mail, Code2, Calendar, Edit2, Save, X, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
 import Sidebar from '../dashboard/Sidebar';
@@ -12,19 +13,31 @@ const TECHNOLOGIES = [
   'Redis', 'Docker', 'Kubernetes', 'AWS', 'GraphQL', 'Next.js', 'Tailwind CSS'
 ];
 
+interface Role {
+  id: number;
+  name: string;
+}
+
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingRole, setIsEditingRole] = useState(false);
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [selectedTechs, setSelectedTechs] = useState<string[]>([]);
   const [customTech, setCustomTech] = useState('');
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [selectedRole, setSelectedRole] = useState('');
 
   useEffect(() => {
     if (user) {
       setName(user.name || '');
       setBio(user.bio || '');
       setSelectedTechs(user.stack || []);
+      setSelectedRole(user.role);
+      if (user.isAdmin) {
+        api.getRoles().then(setRoles).catch(() => {});
+      }
     }
   }, [user]);
 
@@ -61,6 +74,23 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error('Error al actualizar el perfil');
+    }
+  };
+
+  const handleRoleUpdate = async () => {
+    if (!selectedRole || selectedRole === user?.role) {
+      setIsEditingRole(false);
+      return;
+    }
+
+    try {
+      await api.updateUserRole(user!.id, selectedRole as UserRole);
+      await refreshUser();
+      toast.success('Rol actualizado exitosamente');
+      setIsEditingRole(false);
+    } catch (error) {
+      console.error('Error updating role:', error);
+      toast.error('Error al actualizar el rol');
     }
   };
 
@@ -140,12 +170,56 @@ export default function ProfilePage() {
                   <div className="flex-1 pt-16">
                     <div className="flex items-center gap-3 mb-2">
                       <h1 className="text-2xl font-bold">{user.name}</h1>
-                      <span
-                        className="px-3 py-1 rounded-md text-xs font-medium bg-primary/10 text-primary border border-primary/20"
-                        style={{ fontFamily: 'var(--font-mono)' }}
-                      >
-                        {user.role.toUpperCase()}
-                      </span>
+                      {isEditingRole ? (
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={selectedRole}
+                            onChange={(e) => setSelectedRole(e.target.value)}
+                            className="px-3 py-1 rounded-md text-xs font-medium bg-primary/10 text-primary border border-primary/20 focus:outline-none"
+                          >
+                            {roles.map((role) => (
+                              <option key={role.id} value={role.name.toLowerCase()}>
+                                {role.name === 'DEVELOPER' ? 'Desarrollador' : 
+                                 role.name === 'RECRUITER' ? 'Reclutador' : 
+                                 role.name === 'ADMIN' ? 'Administrador' : role.name}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={handleRoleUpdate}
+                            className="p-1 text-green-500 hover:bg-green-500/10 rounded"
+                          >
+                            <Save size={16} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedRole(user.role);
+                              setIsEditingRole(false);
+                            }}
+                            className="p-1 text-destructive hover:bg-destructive/10 rounded"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="px-3 py-1 rounded-md text-xs font-medium bg-primary/10 text-primary border border-primary/20"
+                            style={{ fontFamily: 'var(--font-mono)' }}
+                          >
+                            {user.role.toUpperCase()}
+                          </span>
+                          {user.isAdmin && (
+                            <button
+                              onClick={() => setIsEditingRole(true)}
+                              className="p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded"
+                              title="Editar rol"
+                            >
+                              <Shield size={14} />
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <p className="text-muted-foreground">{user.email}</p>
                   </div>

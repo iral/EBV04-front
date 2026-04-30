@@ -24,7 +24,7 @@ export default function MyProjects() {
   const loadProjects = async () => {
     setIsLoading(true);
     try {
-      const response = await api.getProjects();
+      const response = await api.getMyProjects();
       setProjects(response.data);
     } catch (error) {
       console.error('Error loading projects:', error);

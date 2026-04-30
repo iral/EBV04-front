@@ -111,6 +111,10 @@ class ApiService {
     this.clearAuth();
   }
 
+  async getRoles(): Promise<{ id: number; name: string }[]> {
+    return this.request<{ id: number; name: string }[]>('/roles');
+  }
+
   // ============================================================================
   // Projects
   // ============================================================================
@@ -126,6 +130,24 @@ class ApiService {
 
     const response = await this.request<{ content: Project[]; totalElements: number; number: number; size: number; totalPages: number }>(
       `/projects?${params.toString()}`
+    );
+
+    return {
+      data: response.content,
+      total: response.totalElements,
+      page: response.number + 1,
+      pageSize: response.size,
+      totalPages: response.totalPages,
+    };
+  }
+
+  async getMyProjects(page: number = 1, pageSize: number = 20): Promise<PaginatedResponse<Project>> {
+    const params = new URLSearchParams();
+    params.append('page', String(page - 1));
+    params.append('size', String(pageSize));
+
+    const response = await this.request<{ content: Project[]; totalElements: number; number: number; size: number; totalPages: number }>(
+      `/projects/me?${params.toString()}`
     );
 
     return {
@@ -260,8 +282,13 @@ class ApiService {
   // Notifications
   // ============================================================================
 
-  async getNotifications(): Promise<Notification[]> {
-    return this.request<Notification[]>('/notifications');
+  async getNotifications(page: number = 0, size: number = 20): Promise<Notification[]> {
+    const params = new URLSearchParams();
+    params.append('page', String(page));
+    params.append('size', String(size));
+    
+    const response = await this.request<{ content: Notification[] }>(`/notifications?${params.toString()}`);
+    return response.content || response;
   }
 
   async markNotificationAsRead(id: string): Promise<void> {
@@ -284,7 +311,7 @@ class ApiService {
     return this.request<User[]>('/admin/users');
   }
 
-  async updateUserRole(userId: string, role: 'developer' | 'moderator' | 'admin'): Promise<User> {
+  async updateUserRole(userId: string, role: 'developer' | 'recruiter' | 'admin'): Promise<User> {
     return this.request<User>(`/admin/users/${userId}/role`, {
       method: 'PATCH',
       body: JSON.stringify({ role }),

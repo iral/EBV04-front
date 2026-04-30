@@ -3,7 +3,7 @@
 // ============================================================================
 
 // User & Authentication Types
-export type UserRole = 'developer' | 'moderator' | 'admin';
+export type UserRole = 'developer' | 'recruiter' | 'admin';
 export type AccountStatus = 'active' | 'suspended';
 
 export interface User {
@@ -11,6 +11,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  isAdmin: boolean;
   status: AccountStatus;
   stack: string[];
   bio?: string;
@@ -31,6 +32,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   stack: string[];
+  role?: string;
 }
 
 export interface LoginRequest {
