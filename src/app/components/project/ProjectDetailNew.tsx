@@ -138,7 +138,7 @@ export default function ProjectDetailNew() {
   }
 
   const isOwner = user?.id === String(project.creatorId);
-  const isCollaborator = project.collaborators.some(c => c.id === user?.id);
+  const isCollaborator = project.collaborators.some(c => c.id === user?.id) || isOwner;
   const canViewApplications = isOwner || isCollaborator;
   const hasApplied = applications.some(a => String(a.applicantId) === user?.id);
   const canApply = !isOwner && !isCollaborator && !hasApplied && project.status === 'seeking_collaborators';
