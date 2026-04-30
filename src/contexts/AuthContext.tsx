@@ -48,9 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  const refreshUser = () => {
-    const currentUser = api.getCurrentUser();
-    setUser(currentUser);
+  const refreshUser = async () => {
+    try {
+      const currentUser = await api.getCurrentUser();
+      setUser(currentUser);
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+    }
   };
 
   return (

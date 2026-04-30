@@ -54,7 +54,7 @@ export default function ProfilePage() {
         stack: selectedTechs
       });
       
-      refreshUser();
+      await refreshUser();
       
       toast.success('Perfil actualizado exitosamente');
       setIsEditing(false);
@@ -71,7 +71,7 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-  if (!user) return null;
+  if (!user || !user.name) return null;
 
   return (
     <div className="min-h-screen flex bg-background">
