@@ -197,12 +197,10 @@ export default function ProjectDetailNew() {
                       <Calendar size={16} />
                       <span>{new Date(project.createdAt).toLocaleDateString()}</span>
                     </div>
-                    {project.collaborators.length > 0 && (
-                      <div className="flex items-center gap-2">
-                        <Code2 size={16} />
-                        <span>{project.collaborators.length} colaboradores</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <Code2 size={16} />
+                      <span>{project.collaborators.length + 1} miembros</span>
+                    </div>
                   </div>
                 </div>
 
@@ -287,7 +285,7 @@ export default function ProjectDetailNew() {
                 >
                   {tab === 'overview' && 'Vista General'}
                   {tab === 'applications' && `Postulaciones (${applications.filter(a => a.status === 'pending').length})`}
-                  {tab === 'team' && `Equipo (${project.collaborators.length})`}
+                  {tab === 'team' && `Equipo (${project.collaborators.length + 1})`}
                   {tab === 'discussions' && `Debates (${threads.length})`}
                 </button>
               ))}
