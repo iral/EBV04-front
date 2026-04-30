@@ -29,6 +29,10 @@ export default function ProjectDetailNew() {
   const [activeTab, setActiveTab] = useState<'overview' | 'applications' | 'team' | 'discussions'>('overview');
   const [applicationMessage, setApplicationMessage] = useState('');
   const [isApplying, setIsApplying] = useState(false);
+  const [isEditingProject, setIsEditingProject] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editStack, setEditStack] = useState<string[]>([]);
 
   useEffect(() => {
     if (id) {
@@ -115,15 +119,46 @@ export default function ProjectDetailNew() {
     }
   };
 
-  const handleComplete = async () => {
+const handleComplete = async () => {
     if (!project) return;
     try {
       await api.completeProject(project.id);
       toast.success('Proyecto completado');
       await loadProjectData();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al completar proyecto');
+      toast.error(error instanceof Error ? error.message : 'Error al completar');
     }
+  };
+
+  const handleEditProject = () => {
+    if (!project) return;
+    setEditTitle(project.title);
+    setEditDescription(project.description);
+    setEditStack(project.stackRequired);
+    setIsEditingProject(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!project || !editTitle.trim()) {
+      toast.error('El título es obligatorio');
+      return;
+    }
+    try {
+      await api.updateProject(project.id, {
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+        stackRequired: editStack
+      });
+      toast.success('Proyecto actualizado');
+      setIsEditingProject(false);
+      await loadProjectData();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al actualizar');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingProject(false);
   };
 
   if (isLoading || !project) {
@@ -169,6 +204,70 @@ export default function ProjectDetailNew() {
 
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-6xl mx-auto px-6 py-8">
+            {isEditingProject ? (
+              <div className="bg-card border border-border rounded-lg p-8 mb-6">
+                <h2 className="text-2xl font-bold mb-6">Editar Proyecto</h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Título</label>
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="w-full px-4 py-2 border border-border rounded-md bg-background"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Descripción</label>
+                    <textarea
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      rows={4}
+                      className="w-full px-4 py-2 border border-border rounded-md bg-background"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Tecnologías</label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {TECHNOLOGIES.map((tech) => (
+                        <button
+                          key={tech}
+                          onClick={() => {
+                            setEditStack(prev => 
+                              prev.includes(tech) 
+                                ? prev.filter(t => t !== tech)
+                                : [...prev, tech]
+                            );
+                          }}
+                          className={`px-3 py-1 text-sm rounded-md border transition-colors ${
+                            editStack.includes(tech)
+                              ? 'bg-primary/20 text-primary border-primary/30'
+                              : 'bg-muted text-muted-foreground border-border hover:bg-accent'
+                          }`}
+                        >
+                          {tech}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-4">
+                    <button
+                      onClick={handleSaveEdit}
+                      className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-all"
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      onClick={handleCancelEdit}
+                      className="px-4 py-2 border border-border rounded-md hover:bg-accent transition-all"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+            <>
             {/* Project Header */}
             <div className="bg-card border border-border rounded-lg p-8 mb-6">
               <div className="flex items-start justify-between gap-6 mb-6">
@@ -215,6 +314,15 @@ export default function ProjectDetailNew() {
                     >
                       <Send size={18} />
                       <span>Publicar</span>
+                    </button>
+                  )}
+                  {isOwner && project.status !== 'draft' && (
+                    <button
+                      onClick={handleEditProject}
+                      className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-all flex items-center gap-2"
+                    >
+                      <Edit size={18} />
+                      <span>Editar Proyecto</span>
                     </button>
                   )}
                   {isOwner && project.status === 'seeking_collaborators' && project.collaborators.length > 0 && (
