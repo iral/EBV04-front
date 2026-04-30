@@ -13,7 +13,7 @@ const TECHNOLOGIES = [
 ];
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
@@ -48,18 +48,18 @@ export default function ProfilePage() {
     }
 
     try {
-      const updatedUser = await api.updateProfile({
+      await api.updateProfile({
         name: name.trim(),
         bio: bio.trim(),
         stack: selectedTechs
       });
       
-      const { refreshUser } = useAuth();
       refreshUser();
       
       toast.success('Perfil actualizado exitosamente');
       setIsEditing(false);
     } catch (error) {
+      console.error('Error updating profile:', error);
       toast.error('Error al actualizar el perfil');
     }
   };
