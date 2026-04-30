@@ -139,7 +139,7 @@ export default function ProjectDetailNew() {
 
   const isOwner = user?.id === project.creatorId;
   const isCollaborator = project.collaborators.some(c => c.id === user?.id);
-  const hasApplied = applications.some(a => a.applicantId === user?.id);
+  const hasApplied = applications.some(a => String(a.applicantId) === user?.id);
   const canApply = !isOwner && !isCollaborator && !hasApplied && project.status === 'seeking_collaborators';
   const config = STATUS_CONFIG[project.status];
 
