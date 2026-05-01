@@ -48,6 +48,10 @@ export const router = createBrowserRouter([
     Component: CreateProjectNew,
   },
   {
+    path: '/edit-project/:id',
+    Component: CreateProjectNew,
+  },
+  {
     path: '/project/:id',
     Component: ProjectDetailNew,
   },

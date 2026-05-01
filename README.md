@@ -1,11 +1,25 @@
+# DevCollab - UdeA
 
-  # Figma Prototipo Pantallas
+Plataforma de colaboración para desarrolladores de la Universidad de Antioquia.
 
-  This is a code bundle for Figma Prototipo Pantallas. The original project is available at https://www.figma.com/design/AgWKDd7v19Vyxd9wPd4UGI/Figma-Prototipo-Pantallas.
+## Ejecutar el proyecto
 
-  ## Running the code
+```bash
+npm install
+npm run dev
+```
 
-  Run `npm i` to install the dependencies.
+## Construir para producción
 
-  Run `npm run dev` to start the development server.
-  
+```bash
+npm run build
+```
+
+## Características
+
+- Registro y autenticación de usuarios
+- Creación y publicación de proyectos
+- Sistema de postulaciones y colaboraciones
+- Debates técnicos por proyecto
+- Mensajería entre usuarios
+- Panel de administración

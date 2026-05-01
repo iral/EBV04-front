@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router';
 import { useAuth } from '../../../contexts/AuthContext';
 import { api } from '../../../services/api';
 import { ArrowLeft, Code2, FileText, Save, Send, Plus, X } from 'lucide-react';
@@ -17,11 +17,27 @@ const TECHNOLOGIES = [
 export default function CreateProjectNew() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditing = Boolean(id);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedTechs, setSelectedTechs] = useState<string[]>([]);
   const [customTech, setCustomTech] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingProject, setIsLoadingProject] = useState(isEditing);
+
+  useEffect(() => {
+    if (isEditing && id) {
+      api.getProject(id).then(project => {
+        setTitle(project.title);
+        setDescription(project.description);
+        setSelectedTechs(project.stackRequired || []);
+      }).catch(() => {
+        toast.error('Error al cargar el proyecto');
+        navigate('/my-projects');
+      }).finally(() => setIsLoadingProject(false));
+    }
+  }, [id, isEditing, navigate]);
 
   const toggleTech = (tech: string) => {
     setSelectedTechs(prev =>
@@ -55,25 +71,46 @@ export default function CreateProjectNew() {
 
     setIsLoading(true);
     try {
-      const project = await api.createProject({
-        title: title.trim(),
-        description: description.trim(),
-        stackRequired: selectedTechs,
-        status,
-      });
+      let project;
+      if (isEditing && id) {
+        project = await api.updateProject(id, {
+          title: title.trim(),
+          description: description.trim(),
+          stackRequired: selectedTechs,
+          status,
+        });
+      } else {
+        project = await api.createProject({
+          title: title.trim(),
+          description: description.trim(),
+          stackRequired: selectedTechs,
+          status,
+        });
+      }
 
       toast.success(
         status === 'draft'
           ? 'Borrador guardado exitosamente'
-          : 'Proyecto publicado exitosamente'
+          : isEditing ? 'Proyecto actualizado exitosamente' : 'Proyecto publicado exitosamente'
       );
       navigate(`/project/${project.id}`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al crear el proyecto');
+      toast.error(error instanceof Error ? error.message : isEditing ? 'Error al actualizar el proyecto' : 'Error al crear el proyecto');
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isLoadingProject) {
+    return (
+      <div className="min-h-screen flex bg-background">
+        <Sidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex bg-background">

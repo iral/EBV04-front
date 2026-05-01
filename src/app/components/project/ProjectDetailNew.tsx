@@ -5,7 +5,7 @@ import { api } from '../../../services/api';
 import type { Project, Application, Thread } from '../../../types/api';
 import {
   ArrowLeft, Users, Calendar, Code2, Play, CheckCircle2, MessageSquare,
-  Send, UserPlus, Clock, Check, X, Edit, Trash2
+  Send, UserPlus, Clock, Check, X, Edit, Trash2, Edit2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
@@ -29,6 +29,10 @@ export default function ProjectDetailNew() {
   const [activeTab, setActiveTab] = useState<'overview' | 'applications' | 'team' | 'discussions'>('overview');
   const [applicationMessage, setApplicationMessage] = useState('');
   const [isApplying, setIsApplying] = useState(false);
+  const [showCreateDiscussion, setShowCreateDiscussion] = useState(false);
+  const [newDiscussionTitle, setNewDiscussionTitle] = useState('');
+  const [newDiscussionContent, setNewDiscussionContent] = useState('');
+  const [newDiscussionCategory, setNewDiscussionCategory] = useState('general');
 
   useEffect(() => {
     if (id) {
@@ -75,7 +79,7 @@ export default function ProjectDetailNew() {
 
   const handleAcceptApplication = async (applicationId: string) => {
     try {
-      await api.updateApplication(applicationId, 'accepted');
+      await api.updateApplication(project!.id, applicationId, 'accepted');
       toast.success('Colaborador aceptado');
       await loadProjectData();
     } catch (error) {
@@ -85,7 +89,7 @@ export default function ProjectDetailNew() {
 
   const handleRejectApplication = async (applicationId: string) => {
     try {
-      await api.updateApplication(applicationId, 'rejected');
+      await api.updateApplication(project!.id, applicationId, 'rejected');
       toast.success('Postulación rechazada');
       await loadProjectData();
     } catch (error) {
@@ -123,6 +127,28 @@ export default function ProjectDetailNew() {
       await loadProjectData();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error al completar proyecto');
+    }
+  };
+
+  const handleCreateDiscussion = async () => {
+    if (!newDiscussionTitle.trim() || !newDiscussionContent.trim()) {
+      toast.error('El título y contenido son obligatorios');
+      return;
+    }
+    try {
+      await api.createThread({
+        projectId: project!.id,
+        title: newDiscussionTitle.trim(),
+        content: newDiscussionContent.trim(),
+        category: newDiscussionCategory,
+      });
+      toast.success('Debate creado exitosamente');
+      setShowCreateDiscussion(false);
+      setNewDiscussionTitle('');
+      setNewDiscussionContent('');
+      loadProjectData();
+    } catch (error) {
+      toast.error('Error al crear el debate');
     }
   };
 
@@ -206,6 +232,15 @@ export default function ProjectDetailNew() {
 
                 {/* Actions */}
                 <div className="flex flex-col gap-2">
+                  {isOwner && (
+                    <button
+                      onClick={() => navigate(`/edit-project/${project.id}`)}
+                      className="px-4 py-2 bg-muted text-foreground rounded-md hover:bg-muted/80 transition-all flex items-center gap-2"
+                    >
+                      <Edit2 size={18} />
+                      <span>Editar</span>
+                    </button>
+                  )}
                   {isOwner && project.status === 'draft' && (
                     <button
                       onClick={handlePublish}
@@ -401,7 +436,68 @@ export default function ProjectDetailNew() {
 
               {activeTab === 'discussions' && (
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Debates Técnicos</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Debates Técnicos</h3>
+                    {(isOwner || isCollaborator) && (
+                      <button
+                        onClick={() => setShowCreateDiscussion(true)}
+                        className="px-3 py-1.5 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2"
+                      >
+                        <MessageSquare size={16} />
+                        Nuevo Debate
+                      </button>
+                    )}
+                  </div>
+                  {showCreateDiscussion && (
+                    <div className="mb-6 p-4 bg-card border border-border rounded-lg">
+                      <h4 className="font-medium mb-4">Nuevo Debate</h4>
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          placeholder="Título del debate"
+                          value={newDiscussionTitle}
+                          onChange={(e) => setNewDiscussionTitle(e.target.value)}
+                          className="w-full px-3 py-2 bg-input-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        />
+                        <textarea
+                          placeholder="Contenido del debate"
+                          value={newDiscussionContent}
+                          onChange={(e) => setNewDiscussionContent(e.target.value)}
+                          rows={3}
+                          className="w-full px-3 py-2 bg-input-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                        />
+                        <select
+                          value={newDiscussionCategory}
+                          onChange={(e) => setNewDiscussionCategory(e.target.value)}
+                          className="w-full px-3 py-2 bg-input-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        >
+                          <option value="general">General</option>
+                          <option value="technical">Técnico</option>
+                          <option value="design">Diseño</option>
+                          <option value="backend">Backend</option>
+                          <option value="frontend">Frontend</option>
+                        </select>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleCreateDiscussion}
+                            className="px-4 py-2 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90 transition-colors"
+                          >
+                            Crear
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowCreateDiscussion(false);
+                              setNewDiscussionTitle('');
+                              setNewDiscussionContent('');
+                            }}
+                            className="px-4 py-2 bg-muted text-foreground text-sm rounded-md hover:bg-muted/80 transition-colors"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {(isOwner || isCollaborator) ? (
                     threads.length === 0 ? (
                       <p className="text-muted-foreground text-center py-8">

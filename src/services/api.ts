@@ -214,7 +214,8 @@ class ApiService {
   }
 
   async updateApplication(projectId: string, applicationId: string, status: 'accepted' | 'rejected'): Promise<Application> {
-    return this.request<Application>(`/projects/${projectId}/applications/${applicationId}/${status}`, {
+    const endpoint = status === 'accepted' ? 'accept' : 'reject';
+    return this.request<Application>(`/projects/${projectId}/applications/${applicationId}/${endpoint}`, {
       method: 'PUT',
     });
   }

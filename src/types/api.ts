@@ -89,6 +89,7 @@ export interface UpdateProjectRequest {
   title?: string;
   description?: string;
   stackRequired?: string[];
+  status?: 'draft' | 'seeking_collaborators';
 }
 
 // Application Types

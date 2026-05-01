@@ -1,8 +1,10 @@
-# Resumen de Implementación - DevCollab Platform
+# Resumen de Implementación - DevCollab - UdeA
 
 ## 🎯 Descripción General
 
-Plataforma completa de colaboración para desarrolladores con diseño terminal-inspired, implementando todas las historias de usuario (HUs) especificadas en `auth-stories.md`.
+Plataforma completa de colaboración para desarrolladores de la Universidad de Antioquia. Conectada a backend Spring Boot con PostgreSQL.
+
+> **Nota**: Este documento describe la implementación actual con backend real. Anteriormente usaba datos mock locales.
 
 ---
 
