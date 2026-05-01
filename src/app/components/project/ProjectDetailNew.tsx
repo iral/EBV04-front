@@ -249,7 +249,7 @@ export default function ProjectDetailNew() {
 
                 {/* Actions */}
                 <div className="flex flex-col gap-2">
-                  {isOwner && (
+                  {isOwner && (project.status === 'draft' || project.status === 'seeking_collaborators') && (
                     <button
                       onClick={() => navigate(`/edit-project/${project.id}`)}
                       className="px-4 py-2 bg-muted text-foreground rounded-md hover:bg-muted/80 transition-all flex items-center gap-2"
