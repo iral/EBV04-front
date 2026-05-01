@@ -5,7 +5,7 @@ import { api } from '../../../services/api';
 import type { Project, Application, Thread } from '../../../types/api';
 import {
   ArrowLeft, Users, Calendar, Code2, Play, CheckCircle2, MessageSquare,
-  Send, UserPlus, Clock, Check, X, Edit, Trash2
+  Send, UserPlus, Clock, Check, X, Edit, Trash2, Edit2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
@@ -29,6 +29,10 @@ export default function ProjectDetailNew() {
   const [activeTab, setActiveTab] = useState<'overview' | 'applications' | 'team' | 'discussions'>('overview');
   const [applicationMessage, setApplicationMessage] = useState('');
   const [isApplying, setIsApplying] = useState(false);
+  const [showCreateDiscussion, setShowCreateDiscussion] = useState(false);
+  const [newDiscussionTitle, setNewDiscussionTitle] = useState('');
+  const [newDiscussionContent, setNewDiscussionContent] = useState('');
+  const [newDiscussionCategory, setNewDiscussionCategory] = useState('general');
 
   useEffect(() => {
     if (id) {
@@ -75,7 +79,7 @@ export default function ProjectDetailNew() {
 
   const handleAcceptApplication = async (applicationId: string) => {
     try {
-      await api.updateApplication(applicationId, 'accepted');
+      await api.updateApplication(project!.id, applicationId, 'accepted');
       toast.success('Colaborador aceptado');
       await loadProjectData();
     } catch (error) {
@@ -85,7 +89,7 @@ export default function ProjectDetailNew() {
 
   const handleRejectApplication = async (applicationId: string) => {
     try {
-      await api.updateApplication(applicationId, 'rejected');
+      await api.updateApplication(project!.id, applicationId, 'rejected');
       toast.success('Postulación rechazada');
       await loadProjectData();
     } catch (error) {
@@ -123,6 +127,28 @@ export default function ProjectDetailNew() {
       await loadProjectData();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error al completar proyecto');
+    }
+  };
+
+  const handleCreateDiscussion = async () => {
+    if (!newDiscussionTitle.trim() || !newDiscussionContent.trim()) {
+      toast.error('El título y contenido son obligatorios');
+      return;
+    }
+    try {
+      await api.createThread({
+        projectId: project!.id,
+        title: newDiscussionTitle.trim(),
+        content: newDiscussionContent.trim(),
+        category: newDiscussionCategory,
+      });
+      toast.success('Debate creado exitosamente');
+      setShowCreateDiscussion(false);
+      setNewDiscussionTitle('');
+      setNewDiscussionContent('');
+      loadProjectData();
+    } catch (error) {
+      toast.error('Error al crear el debate');
     }
   };
 
@@ -189,6 +215,23 @@ export default function ProjectDetailNew() {
                   </div>
 
                   <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                    {(project.repoUrls && project.repoUrls.length > 0) && (
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="text-xs font-medium">Repos:</span>
+                        {project.repoUrls.map((url, index) => (
+                          <a
+                            key={index}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline flex items-center gap-1"
+                          >
+                            <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                            Repo {index + 1}
+                          </a>
+                        ))}
+                      </div>
+                    )}
                     <div className="flex items-center gap-2">
                       <Users size={16} />
                       <span>Creado por {project.creator.name}</span>
@@ -206,6 +249,15 @@ export default function ProjectDetailNew() {
 
                 {/* Actions */}
                 <div className="flex flex-col gap-2">
+                  {isOwner && (project.status === 'draft' || project.status === 'seeking_collaborators') && (
+                    <button
+                      onClick={() => navigate(`/edit-project/${project.id}`)}
+                      className="px-4 py-2 bg-muted text-foreground rounded-md hover:bg-muted/80 transition-all flex items-center gap-2"
+                    >
+                      <Edit2 size={18} />
+                      <span>Editar</span>
+                    </button>
+                  )}
                   {isOwner && project.status === 'draft' && (
                     <button
                       onClick={handlePublish}
@@ -235,11 +287,12 @@ export default function ProjectDetailNew() {
                   )}
                   {canApply && (
                     <button
-                      onClick={() => setActiveTab('overview')}
-                      className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-all flex items-center gap-2"
+                      onClick={handleApply}
+                      disabled={isApplying}
+                      className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-all flex items-center gap-2 disabled:opacity-50"
                     >
                       <UserPlus size={18} />
-                      <span>Postularme</span>
+                      <span>{isApplying ? 'Enviando...' : 'Postularme'}</span>
                     </button>
                   )}
                 </div>
@@ -273,22 +326,54 @@ export default function ProjectDetailNew() {
 
             {/* Tabs */}
             <div className="flex gap-2 mb-6">
-              {['overview', 'applications', 'team', 'discussions'].map((tab) => (
+              <button
+                key="overview"
+                onClick={() => setActiveTab('overview')}
+                className={`px-4 py-2 rounded-md transition-all ${
+                  activeTab === 'overview'
+                    ? 'bg-primary/10 text-primary border border-primary/20'
+                    : 'text-foreground/70 hover:bg-accent'
+                }`}
+              >
+                Vista General
+              </button>
+              {canViewApplications && (
                 <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab as any)}
+                  key="applications"
+                  onClick={() => setActiveTab('applications')}
                   className={`px-4 py-2 rounded-md transition-all ${
-                    activeTab === tab
+                    activeTab === 'applications'
                       ? 'bg-primary/10 text-primary border border-primary/20'
                       : 'text-foreground/70 hover:bg-accent'
                   }`}
                 >
-                  {tab === 'overview' && 'Vista General'}
-                  {tab === 'applications' && `Postulaciones (${applications.filter(a => a.status === 'pending').length})`}
-                  {tab === 'team' && `Equipo (${project.collaborators.length + 1})`}
-                  {tab === 'discussions' && `Debates (${threads.length})`}
+                  {`Postulaciones (${applications.filter(a => a.status === 'pending').length})`}
                 </button>
-              ))}
+              )}
+              <button
+                key="team"
+                onClick={() => setActiveTab('team')}
+                className={`px-4 py-2 rounded-md transition-all ${
+                  activeTab === 'team'
+                    ? 'bg-primary/10 text-primary border border-primary/20'
+                    : 'text-foreground/70 hover:bg-accent'
+                }`}
+              >
+                {`Equipo (${project.collaborators.length + 1})`}
+              </button>
+              {canViewApplications && (
+                <button
+                  key="discussions"
+                  onClick={() => setActiveTab('discussions')}
+                  className={`px-4 py-2 rounded-md transition-all ${
+                    activeTab === 'discussions'
+                      ? 'bg-primary/10 text-primary border border-primary/20'
+                      : 'text-foreground/70 hover:bg-accent'
+                  }`}
+                >
+                  {`Debates (${threads.length})`}
+                </button>
+              )}
             </div>
 
             {/* Tab Content */}
@@ -401,7 +486,68 @@ export default function ProjectDetailNew() {
 
               {activeTab === 'discussions' && (
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Debates Técnicos</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Debates Técnicos</h3>
+                    {(isOwner || isCollaborator) && (
+                      <button
+                        onClick={() => setShowCreateDiscussion(true)}
+                        className="px-3 py-1.5 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2"
+                      >
+                        <MessageSquare size={16} />
+                        Nuevo Debate
+                      </button>
+                    )}
+                  </div>
+                  {showCreateDiscussion && (
+                    <div className="mb-6 p-4 bg-card border border-border rounded-lg">
+                      <h4 className="font-medium mb-4">Nuevo Debate</h4>
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          placeholder="Título del debate"
+                          value={newDiscussionTitle}
+                          onChange={(e) => setNewDiscussionTitle(e.target.value)}
+                          className="w-full px-3 py-2 bg-input-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        />
+                        <textarea
+                          placeholder="Contenido del debate"
+                          value={newDiscussionContent}
+                          onChange={(e) => setNewDiscussionContent(e.target.value)}
+                          rows={3}
+                          className="w-full px-3 py-2 bg-input-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                        />
+                        <select
+                          value={newDiscussionCategory}
+                          onChange={(e) => setNewDiscussionCategory(e.target.value)}
+                          className="w-full px-3 py-2 bg-input-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        >
+                          <option value="general">General</option>
+                          <option value="technical">Técnico</option>
+                          <option value="design">Diseño</option>
+                          <option value="backend">Backend</option>
+                          <option value="frontend">Frontend</option>
+                        </select>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleCreateDiscussion}
+                            className="px-4 py-2 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90 transition-colors"
+                          >
+                            Crear
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowCreateDiscussion(false);
+                              setNewDiscussionTitle('');
+                              setNewDiscussionContent('');
+                            }}
+                            className="px-4 py-2 bg-muted text-foreground text-sm rounded-md hover:bg-muted/80 transition-colors"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {(isOwner || isCollaborator) ? (
                     threads.length === 0 ? (
                       <p className="text-muted-foreground text-center py-8">

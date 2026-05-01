@@ -603,6 +603,46 @@ Content-Security-Policy: default-src 'self'
 
 ---
 
+## 13. Roles
+
+### GET `/roles` (público)
+Obtiene todos los roles disponibles del sistema.
+
+**Response** (200):
+```typescript
+[
+  { id: 1, name: "DEVELOPER" },
+  { id: 2, name: "RECRUITER" },
+  { id: 3, name: "ADMIN" }
+]
+```
+
+---
+
+## 14. Proyectos del Usuario
+
+### GET `/projects/me`
+Obtiene los proyectos creados por el usuario actual.
+
+**Headers**: Requiere autenticación
+
+**Query params**:
+- `page`: número de página (default 0)
+- `size`: elementos por página (default 20)
+
+**Response** (200):
+```typescript
+{
+  content: Project[];
+  totalElements: number;
+  number: number;        // número de página actual
+  size: number;
+  totalPages: number;
+}
+```
+
+---
+
 ## Implementación Mock
 
 El servicio mock actual (`/src/services/api.ts`) simula todas estas operaciones con:

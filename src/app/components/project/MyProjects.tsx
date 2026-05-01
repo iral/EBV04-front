@@ -33,10 +33,10 @@ export default function MyProjects() {
     }
   };
 
-  const createdProjects = projects.filter(p => p.creatorId === user?.id && p.status !== 'draft');
-  const draftProjects = projects.filter(p => p.creatorId === user?.id && p.status === 'draft');
+  const createdProjects = projects.filter(p => String(p.creatorId) === user?.id && p.status !== 'draft');
+  const draftProjects = projects.filter(p => String(p.creatorId) === user?.id && p.status === 'draft');
   const collaboratingProjects = projects.filter(p =>
-    p.collaborators.some(c => c.id === user?.id)
+    p.collaborators.some(c => String(c.id) === user?.id)
   );
 
   const getCurrentProjects = () => {
