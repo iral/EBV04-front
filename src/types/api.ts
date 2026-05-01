@@ -71,6 +71,7 @@ export interface Project {
   creatorId: string;
   creator: User;
   collaborators: User[];
+  repoUrls: string[];
   createdAt: string;
   updatedAt: string;
   startedAt?: string;
@@ -83,6 +84,7 @@ export interface CreateProjectRequest {
   description: string;
   stackRequired: string[];
   status: 'draft' | 'seeking_collaborators';
+  repoUrls?: string[];
 }
 
 export interface UpdateProjectRequest {

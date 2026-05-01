@@ -25,6 +25,12 @@ export default function CreateProjectNew() {
   const [customTech, setCustomTech] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingProject, setIsLoadingProject] = useState(isEditing);
+  const [githubUrl, setGithubUrl] = useState('');
+  const [gitlabUrl, setGitlabUrl] = useState('');
+  const [bitbucketUrl, setBitbucketUrl] = useState('');
+  const [otherRepoUrl, setOtherRepoUrl] = useState('');
+  const [repoUrls, setRepoUrls] = useState<string[]>([]);
+  const [newRepoUrl, setNewRepoUrl] = useState('');
 
   useEffect(() => {
     if (isEditing && id) {
@@ -32,6 +38,7 @@ export default function CreateProjectNew() {
         setTitle(project.title);
         setDescription(project.description);
         setSelectedTechs(project.stackRequired || []);
+        setRepoUrls(project.repoUrls || []);
       }).catch(() => {
         toast.error('Error al cargar el proyecto');
         navigate('/my-projects');
@@ -78,6 +85,7 @@ export default function CreateProjectNew() {
           description: description.trim(),
           stackRequired: selectedTechs,
           status,
+          repoUrls: repoUrls.length > 0 ? repoUrls : undefined,
         });
       } else {
         project = await api.createProject({
@@ -85,6 +93,7 @@ export default function CreateProjectNew() {
           description: description.trim(),
           stackRequired: selectedTechs,
           status,
+          repoUrls: repoUrls.length > 0 ? repoUrls : undefined,
         });
       }
 
@@ -291,6 +300,60 @@ export default function CreateProjectNew() {
                       <strong>Para publicar:</strong> Título, descripción completa y al menos una tecnología
                     </li>
                   </ul>
+                </div>
+
+                {/* Repository Links */}
+                <div className="mt-6">
+                  <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                    <Code2 size={16} className="text-primary" />
+                    Enlaces de Repositorio <span className="text-muted-foreground">(opcional)</span>
+                  </h4>
+                  <div className="space-y-2">
+                    {repoUrls.map((url, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="url"
+                          value={url}
+                          onChange={(e) => {
+                            const newUrls = [...repoUrls];
+                            newUrls[index] = e.target.value;
+                            setRepoUrls(newUrls);
+                          }}
+                          placeholder="https://github.com/usuario/proyecto"
+                          className="flex-1 px-3 py-2 bg-input-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setRepoUrls(repoUrls.filter((_, i) => i !== index))}
+                          className="px-3 py-2 text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={newRepoUrl}
+                        onChange={(e) => setNewRepoUrl(e.target.value)}
+                        placeholder="Agregar enlace de repositorio..."
+                        className="flex-1 px-3 py-2 bg-input-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (newRepoUrl.trim()) {
+                            setRepoUrls([...repoUrls, newRepoUrl.trim()]);
+                            setNewRepoUrl('');
+                          }
+                        }}
+                        className="px-3 py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-md transition-colors flex items-center gap-1"
+                      >
+                        <Plus size={16} />
+                        <span className="text-sm">Agregar</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Action Buttons */}
