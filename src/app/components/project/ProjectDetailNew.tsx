@@ -326,22 +326,54 @@ export default function ProjectDetailNew() {
 
             {/* Tabs */}
             <div className="flex gap-2 mb-6">
-              {['overview', 'applications', 'team', 'discussions'].map((tab) => (
+              <button
+                key="overview"
+                onClick={() => setActiveTab('overview')}
+                className={`px-4 py-2 rounded-md transition-all ${
+                  activeTab === 'overview'
+                    ? 'bg-primary/10 text-primary border border-primary/20'
+                    : 'text-foreground/70 hover:bg-accent'
+                }`}
+              >
+                Vista General
+              </button>
+              {canViewApplications && (
                 <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab as any)}
+                  key="applications"
+                  onClick={() => setActiveTab('applications')}
                   className={`px-4 py-2 rounded-md transition-all ${
-                    activeTab === tab
+                    activeTab === 'applications'
                       ? 'bg-primary/10 text-primary border border-primary/20'
                       : 'text-foreground/70 hover:bg-accent'
                   }`}
                 >
-                  {tab === 'overview' && 'Vista General'}
-                  {tab === 'applications' && `Postulaciones (${applications.filter(a => a.status === 'pending').length})`}
-                  {tab === 'team' && `Equipo (${project.collaborators.length + 1})`}
-                  {tab === 'discussions' && `Debates (${threads.length})`}
+                  {`Postulaciones (${applications.filter(a => a.status === 'pending').length})`}
                 </button>
-              ))}
+              )}
+              <button
+                key="team"
+                onClick={() => setActiveTab('team')}
+                className={`px-4 py-2 rounded-md transition-all ${
+                  activeTab === 'team'
+                    ? 'bg-primary/10 text-primary border border-primary/20'
+                    : 'text-foreground/70 hover:bg-accent'
+                }`}
+              >
+                {`Equipo (${project.collaborators.length + 1})`}
+              </button>
+              {canViewApplications && (
+                <button
+                  key="discussions"
+                  onClick={() => setActiveTab('discussions')}
+                  className={`px-4 py-2 rounded-md transition-all ${
+                    activeTab === 'discussions'
+                      ? 'bg-primary/10 text-primary border border-primary/20'
+                      : 'text-foreground/70 hover:bg-accent'
+                  }`}
+                >
+                  {`Debates (${threads.length})`}
+                </button>
+              )}
             </div>
 
             {/* Tab Content */}
